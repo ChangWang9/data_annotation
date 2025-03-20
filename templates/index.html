@@ -1,0 +1,21 @@
+<!-- index.html (如需可稍微调整排版) -->
+<html>
+<head>
+    <title>数据标注系统</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>数据标注系统</h1>
+        <div class="upload-box">
+            <p>请上传 JSONL 文件进行标注:</p>
+            <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" id="file" accept=".jsonl,.json">
+                <button type="submit" class="btn">开始标注</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
