@@ -1,19 +1,19 @@
-<!-- complete.html (示例；保持与原逻辑一致即可) -->
+<!-- complete.html (example; keep consistent with original logic) -->
 <html>
 <head>
-    <title>标注完成</title>
+    <title>Annotation Complete</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>标注完成</h1>
+        <h1>Annotation Complete</h1>
         <div class="complete-box">
-            <p>您已完成所有数据的标注！</p>
-            <p>点击下面的按钮下载标注结果：</p>
-            <a href="{{ url_for('download', filename=filename) }}" class="btn">下载标注结果</a>
-            <a href="{{ url_for('index') }}" class="btn btn-secondary">开始新的标注</a>
+            <p>You have completed all data annotations!</p>
+            <p>Click the button below to download the annotation results:</p>
+            <a href="{{ url_for('download', filename=filename) }}" class="btn">Download Results</a>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Start New Annotation</a>
         </div>
     </div>
 </body>

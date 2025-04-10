@@ -1,82 +1,83 @@
-# 🚀 数据标注系统
 
-一个简单好用的数据标注工具，专为处理问答类数据设计，支持数学公式显示。
+# 🚀 Data Annotation System
 
-## ✨ 特色功能
+A simple and user-friendly data annotation tool specifically designed for question-answer data, with support for mathematical formula display.
 
-* 📊 支持上传 JSONL 格式数据进行标注
-* ⏱️ 自定义倒计时，提高标注效率
-* 🧮 完美渲染 LaTeX 数学公式
-* 📝 简单直观的"正确/错误"二分类标注
-* 📱 响应式设计，适配多种设备
-* 🔄 支持导航和导出标注结果
+## ✨ Key Features
 
-## 🛠️ 技术栈
+* 📊 Support for uploading JSONL format data for annotation
+* ⏱️ Customizable countdown timer to improve annotation efficiency
+* 🧮 Perfect rendering of LaTeX mathematical formulas
+* 📝 Simple and intuitive "Right/Error" binary classification annotation
+* 📱 Responsive design that adapts to various devices
+* 🔄 Support for navigation and export of annotation results
 
-* **前端** ：HTML、CSS、JavaScript、MathJax
-* **后端** ：Flask (Python)
-* **数据处理** ：JSON、Markdown
+## 🛠️ Technology Stack
 
-## 📋 使用指南
+* **Frontend** : HTML, CSS, JavaScript, MathJax
+* **Backend** : Flask (Python)
+* **Data Processing** : JSON, Markdown
 
-### 1. 部署系统
+## 📋 User Guide
+
+### 1. Deploy the System
 
 ```bash
-# 克隆项目
+# Clone the project
 git clone https://github.com/ChangWang9/data_annotation.git
-cd 数据标注系统
+cd data_annotation
 
-# 安装依赖
+# Install dependencies
 pip install flask markdown2
 
-# 启动服务
+# Start the service
 python app.py
 ```
 
-系统将在 http://localhost:5000 启动
+The system will start at http://localhost:5000
 
-### 2. 上传数据
+### 2. Upload Data
 
-* 准备好符合格式的 JSONL 文件（每行是一个 JSON 对象）
-* 在首页点击"选择文件"上传
-* 文件应包含 `question` 和 `neg_reasoning_paths` 字段
+* Prepare a JSONL file in the correct format (each line is a JSON object)
+* Click "Choose File" on the homepage to upload
+* The file should include `question` and `neg_reasoning_paths` fields
 
-### 3. 标注流程
+### 3. Annotation Process
 
-1. 查看显示的问题和回答内容
-2. 使用上/下滑按钮浏览长内容
-3. 点击 "Right" 或 "Error" 进行标注
-4. 系统自动跳转到下一条数据
-5. 标注完成后可下载结果
+1. View the displayed question and answer content
+2. Use the up/down scroll buttons to browse long content
+3. Click "Right" or "Error" to make an annotation
+4. The system automatically jumps to the next data item
+5. Download the results after completing the annotations
 
-### 4. 小技巧
+### 4. Tips
 
-* 点击"设置倒计时"可自定义每题的标注时间
-* 时间到会自动跳转到下一题，提高效率
-* 随时可以点击"导出标注"保存当前进度
+* Click "Set Timer" to customize the annotation time for each question
+* When time is up, it will automatically jump to the next question, improving efficiency
+* You can click "Export Annotations" at any time to save current progress
 
-## 📁 项目结构
+## 📁 Project Structure
 
 ```
-数据标注系统/
-├── app.py             # 核心应用逻辑
+data_annotation/
+├── app.py             # Core application logic
 ├── static/
-│   └── style.css      # 样式文件
-├── templates/         # HTML模板
-│   ├── index.html     # 首页
-│   ├── annotate.html  # 标注页
-│   └── complete.html  # 完成页
-├── uploads/           # 上传文件目录
-├── annotations/       # 标注结果保存目录
-└── data_files/        # 处理后的数据文件
+│   └── style.css      # Style file
+├── templates/         # HTML templates
+│   ├── index.html     # Homepage
+│   ├── annotate.html  # Annotation page
+│   └── complete.html  # Completion page
+├── uploads/           # Upload file directory
+├── annotations/       # Annotation results directory
+└── data_files/        # Processed data files
 ```
 
-## 📝 数据格式说明
+## 📝 Data Format Description
 
-上传的 JSONL 文件格式示例：
+Example of the JSONL file format for upload:
 
 ```jsonl
-{"question": "问题文本", "neg_reasoning_paths": ["回答文本"]}
+{"question": "Question text", "neg_reasoning_paths": ["Answer text"]}
 ```
 
-如果数据中包含 LaTeX 公式，系统会自动处理并渲染。
+If the data contains LaTeX formulas, the system will automatically process and render them.

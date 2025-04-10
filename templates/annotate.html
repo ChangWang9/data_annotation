@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>数据标注 - 第{{ current }}/{{ total }}项</title>
+    <title>Data Annotation - Item {{ current }}/{{ total }}</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 引入 CSS -->
+    <!-- Import CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
-    <!-- 在这里配置并引入 MathJax v3 -->
+    <!-- Configure and import MathJax v3 -->
     <script>
-        // 让 MathJax 识别单美元符号 $...$ 及双美元符号 $$...$$
+        // Make MathJax recognize single dollar sign $...$ and double dollar sign $$...$$
         window.MathJax = {
           tex: {
             inlineMath: [ ['$', '$'], ['\\(','\\)'] ],
@@ -22,61 +22,61 @@
 <body>
     <div class="annotation-container">
         <div class="header">
-            <div class="item-count">项目 {{ current }} / {{ total }}</div>
+            <div class="item-count">Item {{ current }} / {{ total }}</div>
             <div class="timer-container">
-                <button id="set-timer" class="timer-btn">设置倒计时</button>
-                <div id="timer" class="timer">倒计时: <span id="countdown">{{ countdown }}</span>s</div>
+                <button id="set-timer" class="timer-btn">Set Timer</button>
+                <div id="timer" class="timer">Countdown: <span id="countdown">{{ countdown }}</span>s</div>
             </div>
         </div>
         
-        <!-- 问题区域 -->
+        <!-- Question area -->
         <div class="question-box">
             <h2>Question</h2>
-            <!-- 此处直接使用后端转换后的 HTML -->
+            <!-- Using HTML converted by backend -->
             <div id="question-content" class="scrollable-question">
                 {{ item.question_html|safe }}
             </div>
         </div>
         
-        <!-- 响应区域 -->
+        <!-- Response area -->
         <div class="response-container">
             <div class="response-box">
                 <h2>Response</h2>
-                <!-- 同理，这里也用经过 Markdown 转换的 HTML -->
+                <!-- Similarly, using HTML converted from Markdown -->
                 <div id="response-content" class="scrollable-content">
                     {{ item.response_html|safe }}
                 </div>
             </div>
             
-            <!-- 滚动控制 -->
+            <!-- Scroll controls -->
             <div class="scroll-controls">
                 <button id="scroll-up" class="scroll-btn">
                     <div class="arrow up-arrow"></div>
-                    <div>上滑</div>
+                    <div>Up</div>
                 </button>
                 <button id="scroll-down" class="scroll-btn">
                     <div class="arrow down-arrow"></div>
-                    <div>下滑</div>
+                    <div>Down</div>
                 </button>
             </div>
         </div>
         
-        <!-- 标注按钮 -->
+        <!-- Annotation buttons -->
         <div class="annotation-buttons">
             <button id="btn-right" class="btn-large">Right</button>
             <button id="btn-error" class="btn-large">Error</button>
         </div>
         
-        <!-- 导航按钮 -->
+        <!-- Navigation buttons -->
         <div class="navigation">
-            <a href="{{ url_for('navigate', direction='prev') }}" class="nav-btn" id="btn-prev">上一项</a>
-            <a href="{{ url_for('complete') }}" class="btn-export">导出标注</a>
-            <a href="{{ url_for('navigate', direction='next') }}" class="nav-btn" id="btn-next">下一项</a>
+            <a href="{{ url_for('navigate', direction='prev') }}" class="nav-btn" id="btn-prev">Previous</a>
+            <a href="{{ url_for('complete') }}" class="btn-export">Export Annotations</a>
+            <a href="{{ url_for('navigate', direction='next') }}" class="nav-btn" id="btn-next">Next</a>
         </div>
     </div>
     
     <script>
-        // 倒计时功能
+        // Countdown functionality
         let countdown = {{ countdown }};
         let timerInterval;
         
@@ -88,7 +88,7 @@
                 
                 if (countdown <= 0) {
                     clearInterval(timerInterval);
-                    // 时间到，自动跳转到下一项
+                    // Time's up, automatically jump to next item
                     window.location.href = "{{ url_for('navigate', direction='next') }}";
                 }
             }, 1000);
@@ -97,7 +97,7 @@
         startTimer();
         
         document.getElementById('set-timer').addEventListener('click', function() {
-            const seconds = prompt("输入倒计时秒数:", "60");
+            const seconds = prompt("Enter countdown seconds:", "60");
             if (seconds && !isNaN(seconds)) {
                 countdown = parseInt(seconds);
                 document.getElementById('countdown').textContent = countdown;
@@ -105,7 +105,7 @@
             }
         });
         
-        // 滚动控制
+        // Scroll controls
         document.getElementById('scroll-up').addEventListener('click', function() {
             const content = document.getElementById('response-content');
             content.scrollTop -= 100;
@@ -116,7 +116,7 @@
             content.scrollTop += 100;
         });
         
-        // 标注按钮
+        // Annotation buttons
         document.getElementById('btn-right').addEventListener('click', function() {
             recordAnnotation(true);
         });
@@ -138,7 +138,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // 刷新当前页 or 跳转到下一项
+                    // Refresh current page or jump to next item
                     window.location.href = "{{ url_for('annotate') }}";
                 }
             })
