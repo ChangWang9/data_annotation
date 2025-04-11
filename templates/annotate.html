@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Data Annotation - Item {{ current }}/{{ total }}</title>
+    <title>Data Annotation - Question {{ current_question }}/{{ total_questions }}</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Import CSS -->
@@ -22,7 +22,10 @@
 <body>
     <div class="annotation-container">
         <div class="header">
-            <div class="item-count">Item {{ current }} / {{ total }}</div>
+            <div class="item-count">
+                Question {{ current_question }} / {{ total_questions }} - 
+                Response {{ item.current_response }} / {{ item.total_responses }}
+            </div>
             <div class="timer-container">
                 <button id="set-timer" class="timer-btn">Set Timer</button>
                 <div id="timer" class="timer">Countdown: <span id="countdown">{{ countdown }}</span>s</div>
@@ -41,7 +44,7 @@
         <!-- Response area -->
         <div class="response-container">
             <div class="response-box">
-                <h2>Response</h2>
+                <h2>Response {{ item.current_response }} / {{ item.total_responses }}</h2>
                 <!-- Similarly, using HTML converted from Markdown -->
                 <div id="response-content" class="scrollable-content">
                     {{ item.response_html|safe }}
@@ -138,7 +141,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Refresh current page or jump to next item
+                    // Refresh current page to show next response
                     window.location.href = "{{ url_for('annotate') }}";
                 }
             })

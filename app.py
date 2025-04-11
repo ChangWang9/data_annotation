@@ -1,4 +1,4 @@
-# app.py (only showing the core concept of modifications/additions, others remain unchanged)
+# app.py
 import os
 import json
 import uuid
@@ -6,6 +6,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_file
 import markdown2
 import re
+
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -51,18 +52,22 @@ def upload_file():
             try:
                 item = json.loads(line.strip())
                 if 'neg_reasoning_paths' in item:
-                    # Assuming neg_reasoning_paths is a list containing question/response information
-                    # Modify as needed if your actual data structure is different
-
                     question_text = item.get('question', '(No question)')
-                    response_text = item.get('neg_reasoning_paths', '(No response)')[0]
                     
+                    # Get all neg_reasoning_paths instead of just the first one
+                    response_texts = item.get('neg_reasoning_paths', ['(No response)'])
+                    
+                    # Process LaTeX in question
                     question_text = fix_tabular_to_array(question_text)
-                    response_text = fix_tabular_to_array(response_text)
+                    
+                    # Process LaTeX in all responses
+                    processed_responses = []
+                    for response in response_texts:
+                        processed_responses.append(fix_tabular_to_array(response))
                     
                     data.append({
                         'question': question_text,
-                        'response': response_text
+                        'responses': processed_responses
                     })
             except json.JSONDecodeError:
                 continue
@@ -75,16 +80,28 @@ def upload_file():
     with open(data_filepath, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     
+    # Initialize annotations with structure for multiple answers per question
+    annotations = []
+    for i, item in enumerate(data):
+        annotation_item = {
+            "question_index": i,
+            "question": item["question"],
+            "responses": [],
+            "annotations": [],
+            "timestamp": ""
+        }
+        annotations.append(annotation_item)
+    
     annotations_filepath = os.path.join(app.config['ANNOTATION_FOLDER'], f"{session_id}_annotations.json")
     with open(annotations_filepath, 'w', encoding='utf-8') as f:
-        json.dump([], f)
+        json.dump(annotations, f, ensure_ascii=False, indent=2)
     
     session['session_id'] = session_id
-    session['current_index'] = 0
-    session['total_items'] = len(data)
+    session['current_question_index'] = 0
+    session['current_response_index'] = 0
+    session['total_questions'] = len(data)
     
     return redirect(url_for('annotate'))
-
 
 @app.route('/annotate')
 def annotate():
@@ -92,31 +109,47 @@ def annotate():
         return redirect(url_for('index'))
     
     session_id = session['session_id']
-    current_index = session.get('current_index', 0)
-    total_items = session.get('total_items', 0)
+    current_question_index = session.get('current_question_index', 0)
+    current_response_index = session.get('current_response_index', 0)
+    total_questions = session.get('total_questions', 0)
     
-    if current_index >= total_items:
+    if current_question_index >= total_questions:
         return redirect(url_for('complete'))
     
     data_filepath = os.path.join(app.config['DATA_FOLDER'], f"{session_id}_data.json")
     with open(data_filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
-        current_item = data[current_index]  # Already contains question and response
+        current_question = data[current_question_index]
+    
+    # Get total number of responses for current question
+    total_responses = len(current_question['responses'])
+    
+    # Check if we have annotated all responses for current question
+    if current_response_index >= total_responses:
+        # Move to next question
+        session['current_question_index'] = current_question_index + 1
+        session['current_response_index'] = 0
+        return redirect(url_for('annotate'))
+    
+    # Convert question and current response from Markdown to HTML
+    question_html = markdown2.markdown(current_question['question'], extras=["fenced-code-blocks"])
+    response_html = markdown2.markdown(current_question['responses'][current_response_index], extras=["fenced-code-blocks"])
 
-    # Convert question and response from Markdown to HTML
-    # extras can include extensions you want to enable, like 'fenced-code-blocks', 'tables', etc.
-    current_item['question_html'] = markdown2.markdown(current_item['question'], extras=["fenced-code-blocks"])
-    current_item['response_html'] = markdown2.markdown(current_item['response'], extras=["fenced-code-blocks"])
+    # Create item to pass to template
+    display_item = {
+        'question_html': question_html,
+        'response_html': response_html,
+        'current_response': current_response_index + 1,
+        'total_responses': total_responses
+    }
 
     return render_template(
         'annotate.html', 
-        item=current_item, 
-        current=current_index + 1, 
-        total=total_items,
+        item=display_item, 
+        current_question=current_question_index + 1, 
+        total_questions=total_questions,
         countdown=60
     )
-# Other routes (record_annotation, complete, download, navigate) remain unchanged
-# ...
 
 @app.route('/record', methods=['POST'])
 def record_annotation():
@@ -130,36 +163,48 @@ def record_annotation():
         return jsonify({"error": "Missing is_correct parameter"}), 400
     
     session_id = session['session_id']
-    current_index = session.get('current_index', 0)
+    current_question_index = session.get('current_question_index', 0)
+    current_response_index = session.get('current_response_index', 0)
     
-    # Read current item data from file
+    # Read data file to get the current question and response
     data_filepath = os.path.join(app.config['DATA_FOLDER'], f"{session_id}_data.json")
     with open(data_filepath, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-        current_item = data[current_index]
-    
-    # Record annotation
-    annotation = {
-        "index": current_index,
-        "content": current_item,
-        "is_correct": is_correct,
-        "timestamp": datetime.now().isoformat()
-    }
+        all_data = json.load(f)
+        current_question = all_data[current_question_index]
+        current_response = current_question['responses'][current_response_index]
     
     # Read existing annotations from file
     annotations_filepath = os.path.join(app.config['ANNOTATION_FOLDER'], f"{session_id}_annotations.json")
     with open(annotations_filepath, 'r', encoding='utf-8') as f:
         annotations = json.load(f)
     
-    # Add new annotation and save back to file
-    annotations.append(annotation)
+    # Update the annotation for the current question and response
+    if len(annotations[current_question_index]['responses']) <= current_response_index:
+        # Add new response
+        annotations[current_question_index]['responses'].append(current_response)
+        annotations[current_question_index]['annotations'].append(is_correct)
+    else:
+        # Update existing response annotation
+        annotations[current_question_index]['annotations'][current_response_index] = is_correct
+    
+    # Update timestamp
+    annotations[current_question_index]['timestamp'] = datetime.now().isoformat()
+    
+    # Save annotations back to file
     with open(annotations_filepath, 'w', encoding='utf-8') as f:
         json.dump(annotations, f, ensure_ascii=False, indent=2)
     
-    # Update index in session
-    session['current_index'] = current_index + 1
+    # Update response index in session
+    session['current_response_index'] = current_response_index + 1
     
-    return jsonify({"success": True, "next_index": current_index + 1})
+    # Check if we've completed all responses for the current question
+    total_responses = len(current_question['responses'])
+    if current_response_index + 1 >= total_responses:
+        # Move to next question
+        session['current_question_index'] = current_question_index + 1
+        session['current_response_index'] = 0
+    
+    return jsonify({"success": True, "next_response_index": current_response_index + 1})
 
 @app.route('/complete')
 def complete():
@@ -184,13 +229,40 @@ def navigate(direction):
     if 'session_id' not in session:
         return redirect(url_for('index'))
     
-    current_index = session.get('current_index', 0)
-    total_items = session.get('total_items', 0)
+    current_question_index = session.get('current_question_index', 0)
+    current_response_index = session.get('current_response_index', 0)
+    total_questions = session.get('total_questions', 0)
     
-    if direction == 'prev' and current_index > 0:
-        session['current_index'] = current_index - 1
-    elif direction == 'next' and current_index < total_items - 1:
-        session['current_index'] = current_index + 1
+    session_id = session['session_id']
+    data_filepath = os.path.join(app.config['DATA_FOLDER'], f"{session_id}_data.json")
+    
+    with open(data_filepath, 'r', encoding='utf-8') as f:
+        all_data = json.load(f)
+    
+    if direction == 'prev':
+        # If we're at the first response of a question and not the first question
+        if current_response_index == 0 and current_question_index > 0:
+            # Go to the last response of the previous question
+            session['current_question_index'] = current_question_index - 1
+            prev_question = all_data[current_question_index - 1]
+            session['current_response_index'] = len(prev_question['responses']) - 1
+        # If we're not at the first response of the current question
+        elif current_response_index > 0:
+            # Go to the previous response
+            session['current_response_index'] = current_response_index - 1
+    elif direction == 'next':
+        current_question = all_data[current_question_index]
+        total_responses = len(current_question['responses'])
+        
+        # If we're at the last response of a question and not the last question
+        if current_response_index >= total_responses - 1 and current_question_index < total_questions - 1:
+            # Go to the first response of the next question
+            session['current_question_index'] = current_question_index + 1
+            session['current_response_index'] = 0
+        # If we're not at the last response of the current question
+        elif current_response_index < total_responses - 1:
+            # Go to the next response
+            session['current_response_index'] = current_response_index + 1
     
     return redirect(url_for('annotate'))
 

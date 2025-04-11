@@ -97,6 +97,11 @@ body {
 .item-count {
     font-size: 16px;
     font-weight: bold;
+    color: #333;
+    background-color: #f8f9fa;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border-left: 4px solid #007bff;
 }
 
 .timer-container {
@@ -131,13 +136,16 @@ body {
 .question-box h2 {
     font-size: 18px;
     margin-bottom: 10px;
+    color: #495057;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 5px;
 }
 
 .scrollable-question {
     max-height: 3000px;
     overflow-y: auto;
     background-color: #f2f2f2;
-    padding: 10px;
+    padding: 15px;
     border: 1px solid #ddd;
     border-radius: 6px;
 }
@@ -162,11 +170,15 @@ body {
 .response-box h2 {
     font-size: 18px;
     margin-bottom: 10px;
+    color: #495057;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 5px;
 }
 
 .scrollable-content {
-    max-height: 600px; /* 原来是200px，增加到350px让显示更多内容 */
+    max-height: 600px; /* 原来是200px，增加到600px让显示更多内容 */
     overflow-y: auto;
+    padding: 10px;
 }
 
 /* 右侧：滚动控制按钮 */
