@@ -100,11 +100,35 @@
         startTimer();
         
         document.getElementById('set-timer').addEventListener('click', function() {
-            const seconds = prompt("Enter countdown seconds:", "60");
+            const seconds = prompt("Enter countdown seconds:", "{{ countdown }}");
             if (seconds && !isNaN(seconds)) {
-                countdown = parseInt(seconds);
-                document.getElementById('countdown').textContent = countdown;
-                startTimer();
+                const newTime = parseInt(seconds);
+                
+                // Save timer setting to server
+                fetch('/set_timer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        seconds: newTime
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        countdown = newTime;
+                        document.getElementById('countdown').textContent = countdown;
+                        startTimer();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Fall back to local update if server request fails
+                    countdown = newTime;
+                    document.getElementById('countdown').textContent = countdown;
+                    startTimer();
+                });
             }
         });
         

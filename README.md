@@ -1,4 +1,3 @@
-
 # 🚀 Data Annotation System
 
 A simple and user-friendly data annotation tool specifically designed for question-answer data, with support for mathematical formula display.

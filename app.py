@@ -100,6 +100,7 @@ def upload_file():
     session['current_question_index'] = 0
     session['current_response_index'] = 0
     session['total_questions'] = len(data)
+    session['countdown_seconds'] = 60  # Initialize with default timer value
     
     return redirect(url_for('annotate'))
 
@@ -112,6 +113,9 @@ def annotate():
     current_question_index = session.get('current_question_index', 0)
     current_response_index = session.get('current_response_index', 0)
     total_questions = session.get('total_questions', 0)
+    
+    # Get timer value from session, default to 60 seconds if not set
+    countdown_seconds = session.get('countdown_seconds', 60)
     
     if current_question_index >= total_questions:
         return redirect(url_for('complete'))
@@ -148,8 +152,25 @@ def annotate():
         item=display_item, 
         current_question=current_question_index + 1, 
         total_questions=total_questions,
-        countdown=60
+        countdown=countdown_seconds
     )
+
+@app.route('/set_timer', methods=['POST'])
+def set_timer():
+    """Set the timer duration for all responses in the current session."""
+    if 'session_id' not in session:
+        return jsonify({"error": "No active session"}), 400
+    
+    data = request.json
+    seconds = data.get('seconds')
+    
+    if seconds is None or not isinstance(seconds, int) or seconds <= 0:
+        return jsonify({"error": "Invalid timer value"}), 400
+    
+    # Store timer setting in session
+    session['countdown_seconds'] = seconds
+    
+    return jsonify({"success": True, "seconds": seconds})
 
 @app.route('/record', methods=['POST'])
 def record_annotation():
